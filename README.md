@@ -1,2 +1,2 @@
 # scryptic
-Some super fun scripts for doing things
+Some super fun, not-so-secret scripts for doing things
