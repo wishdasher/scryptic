@@ -1,11 +1,11 @@
-import os
 import argparse
+import os
 import urllib2
 from bs4 import BeautifulSoup
 
 parser = argparse.ArgumentParser(
     description="Downloads manga images from mangareader.net")
-parser.add_argument('--home', action='store_true', help="save to home folder instead of current working directory")
+parser.add_argument('-o', '--output', default='manga', help="output destination folder")
 args = parser.parse_args()
 
 name = raw_input("Enter manga name: ")
@@ -13,9 +13,7 @@ name_clean = name.strip().lower().replace(' ', '-')
 chapter = raw_input("Enter chapter number: ")
 dest_dir = name_clean + os.path.sep + chapter
 
-if args.home:
-    home_path = os.path.expanduser('~/')
-    dest_dir = os.path.join(home_path, 'manga' + os.path.sep + dest_dir)
+dest_dir = os.path.join(args.output, dest_dir)
 
 print("The destination directory is: " + dest_dir)
 
