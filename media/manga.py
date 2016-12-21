@@ -41,8 +41,8 @@ while True:
         source = tag.get('src')
         print("Retrieving source image: " + source)
 
-    page_name = 'page' + str(page) + os.path.splitext(source)[1]
-    dest = os.path.join(dest_dir, page_name)
+    file_name = 'page' + str(page) + os.path.splitext(source)[1]
+    dest = os.path.join(dest_dir, file_name)
     req = urllib2.Request(source)
     req.add_header('User-agent', 'Mozilla 5.10')
     file = urllib2.urlopen(req)
