@@ -2,16 +2,17 @@
 //Currently, META_INFO_SIZE may need to be changed to have clues show up with correct numbering
 
 /* Things to consider:
- * - having better user input methods for modifiable variables
- * - .puz is proprietary, maybe make this work for .ipuz or others formats
- * - using less hacky parsing methods so this works on files from other sources
- * - incorporating extra features like GRBS, RTBL, LTIM, GEXT as described from
+ * - have better user input methods for modifiable variables
+ * - .puz is proprietary, maybe make this work for .ipuz or other formats
+ * - make sure this works on files from other sources
+ * - add clue verification method
+ * - incorporate extra features like GRBS, RTBL, LTIM, GEXT as described from
  * -   https://code.google.com/archive/p/puz/wikis/FileFormat.wiki
  * - figure out how the checksums work, there are repos on github that have implemented this
  */
 
-//user variables
-var FILE_NAME = 'sample.puz';
+//user and input variables
+var FILE_NAME = 'xword.puz';
 
 var OFFSET = 2; //due to implementation, OFFSET must be greater than 1
 var BLANK_COLOR = '#f0f0f0'; //color of blank squares, should not be default white
@@ -25,7 +26,7 @@ var META_INFO_SIZE = 3; //this is what it happens to be for the NYT :/
 //the rest appear to be consistent
 var BLANK = 45;
 var VOID = 46; //black square but BLACK looks like BLANK D:
-var NULL = 0;
+var NUL = 0;
 var SIGNATURE = [65, 67, 82, 79, 83, 83, 38, 68, 79, 87, 78]; //from the third byte
 
 var START_POS = 52; //start of grid information
@@ -35,7 +36,7 @@ var NUM_HINTS_POS = 46;
 
 
 function main() {
-  
+
   //finds first file with title
   var files = DriveApp.getFilesByName(FILE_NAME);
   while (files.hasNext()) {
@@ -44,11 +45,15 @@ function main() {
   }
 
   var bytes = file.getBlob().getBytes();
-  var puzzle = new PuzzleInfo(FILE_NAME, bytes[WIDTH_POS], bytes[HEIGHT_POS], bytes[NUM_HINTS_POS], bytes);
+  var num_hints = bytes[NUM_HINTS_POS];
+  if (num_hints < 0) {
+    num_hints += 256;
+  }
+  var puzzle = new PuzzleInfo(FILE_NAME, bytes[WIDTH_POS], bytes[HEIGHT_POS], num_hints, bytes);
 
   var ss = SpreadsheetApp.create(puzzle.title + " sheet", puzzle.num_hints + OFFSET, puzzle.width + OFFSET + 3);
   var sheet = ss.getActiveSheet();
-  
+
   init(puzzle, sheet);
   createTable(puzzle, sheet);
 }
@@ -66,7 +71,7 @@ function createTable(puzzle, sheet) {
   var table_range = sheet.getRange(OFFSET, OFFSET, puzzle.height, puzzle.width);
   table_range.setHorizontalAlignment('center');
   table_range.setBorder(true, true, true, true, false, false);
-  
+
   var clues = prepareClues(puzzle);
   var across_column = OFFSET + puzzle.width + 1;
   var down_column = OFFSET + puzzle.width + 2;
@@ -122,7 +127,7 @@ function prepareClues(puzzle) {
   var clue_index = 0;
   for (i = start_index; i < puzzle.bytes.length; i++) {
     var byte = puzzle.bytes[i];
-    if (byte == NULL) {
+    if (byte == NUL) {
       if (clue_length != 0) {
         if (clue_index >= META_INFO_SIZE) {
           clues[clue_index - META_INFO_SIZE] = String.fromCharCode.apply(String, puzzle.bytes.slice(start_index, start_index + clue_length));
