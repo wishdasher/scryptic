@@ -1,3 +1,5 @@
+# Finding potential material for puzzle writing
+
 with open('words.txt', 'r') as f:
     words = f.readlines()
 
